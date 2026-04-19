@@ -24,11 +24,10 @@
             min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;
         }
 
-        /* --- ANIMATED INTRO --- */
         #splash-screen {
             position: fixed; inset: 0; background: var(--dark-bg);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 1000; transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.8s;
+            z-index: 1000; transition: transform 1s ease-in-out, opacity 0.8s;
         }
         .intro-title {
             font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 800;
@@ -40,18 +39,20 @@
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         .fade-out { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 
-        /* --- UI --- */
         #game-container {
             background: var(--glass); width: 95%; max-width: 550px; padding: 2.5rem;
             border-radius: 35px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative;
         }
 
         .btn { background: linear-gradient(135deg, var(--accent), var(--secondary)); color: white; border: none; padding: 16px; border-radius: 16px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 15px; }
-        .option-btn { background: white; border: 2px solid #f1f5f9; padding: 15px; border-radius: 18px; cursor: pointer; width: 100%; margin-top: 12px; text-align: left; transition: 0.2s; font-family: inherit; }
-        
+        .option-btn { background: white; border: 2px solid #f1f5f9; padding: 15px; border-radius: 18px; cursor: pointer; width: 100%; margin-top: 12px; text-align: left; font-family: inherit; transition: 0.2s; }
+        .option-btn:hover { border-color: var(--primary); transform: translateX(5px); }
+
         #feedback-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 35px; }
         .hidden { display: none !important; }
         .rank-item { display: flex; justify-content: space-between; padding: 14px; margin-bottom: 10px; border-radius: 14px; background: white; border-left: 5px solid var(--primary); color: #1e293b; font-weight: 600;}
+        
+        #loading-msg { font-size: 0.8rem; color: var(--secondary); margin-top: 10px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -79,13 +80,17 @@
         </div>
 
         <div id="end-screen" class="hidden">
-            <h2 style="color: #1e293b; margin-bottom: 20px;">🏆 Arena Standings</h2>
+            <h2 style="color: #1e293b; margin-bottom: 10px;">🏆 Arena Standings</h2>
+            <p id="loading-msg" class="hidden">Syncing live scores...</p>
             <div id="final-leaderboard"></div>
             <button class="btn" onclick="location.reload()">RESTART ARENA</button>
         </div>
     </div>
 
     <script>
+        // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+        const DATABASE_URL = "https://script.google.com/macros/s/AKfycbydWxniS6CoGqvMx20oiKOMCOW5pWzVmtbWwa71zX2nvkiXbEvfq8N0Ip1A3WaTs_IG/exec";
+
         const questions = [
             { q: "What is a 'Normal' Blood Pressure reading?", a: ["120/80 mmHg", "140/90 mmHg", "160/100 mmHg", "90/60 mmHg"], correct: 0 },
             { q: "Which habit is most damaging for CHD?", a: ["Walking", "Smoking", "Water", "Yoga"], correct: 1 },
@@ -114,7 +119,6 @@
                 showLeaderboard();
                 return;
             }
-
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
             showQuestion();
@@ -143,41 +147,46 @@
             document.getElementById('feedback-title').innerText = isCorrect ? "Correct!" : "Incorrect!";
         }
 
-        function closeFeedback() {
+        async function closeFeedback() {
             document.getElementById('feedback-overlay').classList.add('hidden');
             currentQ++;
-            if(currentQ < questions.length) showQuestion();
-            else showLeaderboard();
+            if(currentQ < questions.length) {
+                showQuestion();
+            } else {
+                await saveScore();
+                showLeaderboard();
+            }
         }
 
-        function showLeaderboard() {
-            let history = JSON.parse(localStorage.getItem('simra_scores')) || [];
+        async function saveScore() {
+            if (playerName.toLowerCase() === "admin123") return;
+            try {
+                await fetch(DATABASE_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ name: playerName, score: score })
+                });
+            } catch (e) { console.error("Cloud save failed", e); }
+        }
 
-            if(playerName.toLowerCase() !== "admin123") {
-                // Check if user already exists
-                const existingIndex = history.findIndex(u => u.name.toLowerCase() === playerName.toLowerCase());
-                
-                if(existingIndex !== -1) {
-                    // Update only if the new score is higher
-                    if(score > history[existingIndex].score) {
-                        history[existingIndex].score = score;
-                    }
-                } else {
-                    history.push({name: playerName, score: score});
-                }
-                
-                history.sort((a,b) => b.score - a.score);
-                localStorage.setItem('simra_scores', JSON.stringify(history));
-            }
-
+        async function showLeaderboard() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('loading-msg').classList.remove('hidden');
 
-            const displayHistory = JSON.parse(localStorage.getItem('simra_scores')) || [];
-            document.getElementById('final-leaderboard').innerHTML = displayHistory.map((e, i) => `
-                <div class="rank-item"><span>#${i+1} ${e.name}</span><span>${e.score} pts</span></div>
-            `).join('') || "No scores yet.";
+            try {
+                const response = await fetch(DATABASE_URL);
+                const data = await response.json();
+                data.sort((a, b) => b.score - a.score);
+                
+                document.getElementById('final-leaderboard').innerHTML = data.slice(0, 10).map((e, i) => `
+                    <div class="rank-item"><span>#${i+1} ${e.name}</span><span>${e.score} pts</span></div>
+                `).join('');
+            } catch (e) {
+                document.getElementById('final-leaderboard').innerHTML = "Could not load cloud scores. Check your URL.";
+            }
+            document.getElementById('loading-msg').classList.add('hidden');
         }
     </script>
 </body>
