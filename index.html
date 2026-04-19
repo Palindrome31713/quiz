@@ -10,7 +10,7 @@
             --primary: #00d2ff; --secondary: #3a7bd5; --accent: #6366f1;
             --correct: #2ecc71; --wrong: #e74c3c;
             --glass: rgba(255, 255, 255, 0.95);
-            --dark-bg: #0f172a; --gh-dark: #161b22; --gh-border: #30363d;
+            --dark-bg: #0f172a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,52 +36,35 @@
             background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: shine 3s linear infinite, float 4s ease-in-out infinite;
         }
-        .tagline { font-size: 1rem; color: #94a3b8; letter-spacing: 4px; text-transform: uppercase; opacity: 0; animation: fadeInDelay 1.5s forwards 0.5s; }
         @keyframes shine { to { background-position: 200% center; } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-out { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 
         /* --- UI --- */
-        nav {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 1000px; padding: 12px 25px; border-radius: 24px;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; z-index: 500;
-        }
-        .nav-logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
         #game-container {
             background: var(--glass); width: 95%; max-width: 550px; padding: 2.5rem;
-            border-radius: 35px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; margin-top: 60px; position: relative;
+            border-radius: 35px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; position: relative;
         }
 
         .btn { background: linear-gradient(135deg, var(--accent), var(--secondary)); color: white; border: none; padding: 16px; border-radius: 16px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 15px; }
         .option-btn { background: white; border: 2px solid #f1f5f9; padding: 15px; border-radius: 18px; cursor: pointer; width: 100%; margin-top: 12px; text-align: left; transition: 0.2s; font-family: inherit; }
-        .option-btn:hover { border-color: var(--primary); transform: translateX(5px); }
         
         #feedback-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 35px; }
         .hidden { display: none !important; }
-        .rank-item { display: flex; justify-content: space-between; padding: 14px; margin-bottom: 10px; border-radius: 14px; background: white; border-left: 5px solid var(--primary); color: #1e293b; }
+        .rank-item { display: flex; justify-content: space-between; padding: 14px; margin-bottom: 10px; border-radius: 14px; background: white; border-left: 5px solid var(--primary); color: #1e293b; font-weight: 600;}
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
         <h1 class="intro-title">Simra's Quiz</h1>
-        <p class="tagline">Where Curiosity Meets Wisdom</p>
     </div>
-
-    <nav>
-        <a href="#" class="nav-logo" onclick="location.reload()">Simra's Quiz</a>
-        <button class="btn" style="width: auto; padding: 8px 20px;" id="shareBtn">Share Arena</button>
-    </nav>
 
     <div id="game-container" class="hidden">
         <div id="start-screen">
             <h1 style="color: #0f172a;">LifeGuard</h1>
             <p style="color: #64748b; margin-bottom: 25px;">The Ultimate Strategy Challenge.</p>
-            <input type="text" id="username" placeholder="Your Hero Name..." style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid #e2e8f0; margin-bottom: 15px; outline: none;">
+            <input type="text" id="username" placeholder="Your Name..." style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid #e2e8f0; margin-bottom: 15px; outline: none;">
             <button class="btn" onclick="startGame()">ENTER ARENA</button>
         </div>
 
@@ -127,8 +110,7 @@
             playerName = document.getElementById('username').value.trim();
             if(!playerName) return alert("Enter your name!");
 
-            // --- THE TEACHER'S SECRET DOOR ---
-            if(playerName === "admin123") {
+            if(playerName.toLowerCase() === "admin123") {
                 showLeaderboard();
                 return;
             }
@@ -169,22 +151,33 @@
         }
 
         function showLeaderboard() {
-            // Save score only if not admin
-            if(playerName !== "admin123") {
-                let history = JSON.parse(localStorage.getItem('simra_scores')) || [];
-                history.push({name: playerName, score: score});
+            let history = JSON.parse(localStorage.getItem('simra_scores')) || [];
+
+            if(playerName.toLowerCase() !== "admin123") {
+                // Check if user already exists
+                const existingIndex = history.findIndex(u => u.name.toLowerCase() === playerName.toLowerCase());
+                
+                if(existingIndex !== -1) {
+                    // Update only if the new score is higher
+                    if(score > history[existingIndex].score) {
+                        history[existingIndex].score = score;
+                    }
+                } else {
+                    history.push({name: playerName, score: score});
+                }
+                
                 history.sort((a,b) => b.score - a.score);
-                localStorage.setItem('simra_scores', JSON.stringify(history.slice(0, 5)));
+                localStorage.setItem('simra_scores', JSON.stringify(history));
             }
 
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('end-screen').classList.remove('hidden');
 
-            const history = JSON.parse(localStorage.getItem('simra_scores')) || [];
-            document.getElementById('final-leaderboard').innerHTML = history.map((e, i) => `
-                <div class="rank-item"><span><strong>#${i+1}</strong> ${e.name}</span><span>${e.score} pts</span></div>
-            `).join('') || "<p style='color:gray'>No participants yet.</p>";
+            const displayHistory = JSON.parse(localStorage.getItem('simra_scores')) || [];
+            document.getElementById('final-leaderboard').innerHTML = displayHistory.map((e, i) => `
+                <div class="rank-item"><span>#${i+1} ${e.name}</span><span>${e.score} pts</span></div>
+            `).join('') || "No scores yet.";
         }
     </script>
 </body>
