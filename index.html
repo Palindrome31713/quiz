@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeGuard | Simra's Quizzes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff; --secondary: #3a7bd5; --accent: #6366f1;
+            --correct: #2ecc71; --wrong: #e74c3c;
+            --glass: rgba(255, 255, 255, 0.95);
+            --dark-bg: #0f172a; --gh-dark: #161b22; --gh-border: #30363d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-color: var(--dark-bg);
+            min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;
+        }
+
+        /* --- ANIMATED INTRO --- */
+        #splash-screen {
+            position: fixed; inset: 0; background: var(--dark-bg);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.8s;
+        }
+        .intro-title {
+            font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 800;
+            background: linear-gradient(to right, #00d2ff, #3a7bd5, #00d2ff);
+            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite, float 4s ease-in-out infinite;
+        }
+        .tagline { font-size: 1rem; color: #94a3b8; letter-spacing: 4px; text-transform: uppercase; opacity: 0; animation: fadeInDelay 1.5s forwards 0.5s; }
+        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-out { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+
+        /* --- UI --- */
+        nav {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 1000px; padding: 12px 25px; border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; z-index: 500;
+        }
+        .nav-logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        #game-container {
+            background: var(--glass); width: 95%; max-width: 550px; padding: 2.5rem;
+            border-radius: 35px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); text-align: center; margin-top: 60px; position: relative;
+        }
+
+        .btn { background: linear-gradient(135deg, var(--accent), var(--secondary)); color: white; border: none; padding: 16px; border-radius: 16px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 15px; }
+        .option-btn { background: white; border: 2px solid #f1f5f9; padding: 15px; border-radius: 18px; cursor: pointer; width: 100%; margin-top: 12px; text-align: left; transition: 0.2s; font-family: inherit; }
+        .option-btn:hover { border-color: var(--primary); transform: translateX(5px); }
+        
+        #feedback-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 35px; }
+        .hidden { display: none !important; }
+        .rank-item { display: flex; justify-content: space-between; padding: 14px; margin-bottom: 10px; border-radius: 14px; background: white; border-left: 5px solid var(--primary); color: #1e293b; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <h1 class="intro-title">Simra's Quiz</h1>
+        <p class="tagline">Where Curiosity Meets Wisdom</p>
+    </div>
+
+    <nav>
+        <a href="#" class="nav-logo" onclick="location.reload()">Simra's Quiz</a>
+        <button class="btn" style="width: auto; padding: 8px 20px;" id="shareBtn">Share Arena</button>
+    </nav>
+
+    <div id="game-container" class="hidden">
+        <div id="start-screen">
+            <h1 style="color: #0f172a;">LifeGuard</h1>
+            <p style="color: #64748b; margin-bottom: 25px;">The Ultimate Strategy Challenge.</p>
+            <input type="text" id="username" placeholder="Your Hero Name..." style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid #e2e8f0; margin-bottom: 15px; outline: none;">
+            <button class="btn" onclick="startGame()">ENTER ARENA</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <h3 id="question-text" style="color: #1e293b; margin-bottom: 20px;"></h3>
+            <div id="options-container"></div>
+            <div id="feedback-overlay" class="hidden">
+                <h1 id="feedback-icon" style="font-size: 4rem;"></h1>
+                <h2 id="feedback-title"></h2>
+                <button class="btn" style="width: auto; padding: 12px 30px;" onclick="closeFeedback()">CONTINUE</button>
+            </div>
+        </div>
+
+        <div id="end-screen" class="hidden">
+            <h2 style="color: #1e293b; margin-bottom: 20px;">🏆 Arena Standings</h2>
+            <div id="final-leaderboard"></div>
+            <button class="btn" onclick="location.reload()">RESTART ARENA</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "What is a 'Normal' Blood Pressure reading?", a: ["120/80 mmHg", "140/90 mmHg", "160/100 mmHg", "90/60 mmHg"], correct: 0 },
+            { q: "Which habit is most damaging for CHD?", a: ["Walking", "Smoking", "Water", "Yoga"], correct: 1 },
+            { q: "Obesity management focuses on...", a: ["Sleeping", "Physical activity", "Salt", "Skipping breakfast"], correct: 1 },
+            { q: "HIV is NOT transmitted through...", a: ["Contact", "Needles", "Handshakes", "Transfusion"], correct: 2 },
+            { q: "Limit what for Hypertension?", a: ["Salt", "Potassium", "Magnesium", "Calcium"], correct: 0 },
+            { q: "BMI over 30 is?", a: ["Underweight", "Healthy", "Overweight", "Obese"], correct: 3 },
+            { q: "PrEP prevents which condition?", a: ["Obesity", "HIV", "Cold", "High BP"], correct: 1 },
+            { q: "CHD affects which part?", a: ["Arteries", "Lungs", "Brain", "Liver"], correct: 0 },
+            { q: "Hypertension is the '____ Killer'.", a: ["Fast", "Silent", "Hidden", "Loud"], correct: 1 },
+            { q: "Prevent lifestyle diseases via?", a: ["Genetics", "Healthy Choices", "Ignoring", "Sugar"], correct: 1 }
+        ];
+
+        let currentQ = 0; let score = 0; let playerName = "";
+
+        window.onload = () => setTimeout(() => {
+            document.getElementById('splash-screen').classList.add('fade-out');
+            document.getElementById('game-container').classList.remove('hidden');
+        }, 3000);
+
+        function startGame() {
+            playerName = document.getElementById('username').value.trim();
+            if(!playerName) return alert("Enter your name!");
+
+            // --- THE TEACHER'S SECRET DOOR ---
+            if(playerName === "admin123") {
+                showLeaderboard();
+                return;
+            }
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQ];
+            document.getElementById('question-text').innerText = q.q;
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            q.a.forEach((opt, idx) => {
+                const b = document.createElement('button');
+                b.className = 'option-btn';
+                b.innerText = opt;
+                b.onclick = () => handleAnswer(idx);
+                container.appendChild(b);
+            });
+        }
+
+        function handleAnswer(idx) {
+            const isCorrect = idx === questions[currentQ].correct;
+            if (isCorrect) score += 10;
+            const overlay = document.getElementById('feedback-overlay');
+            overlay.classList.remove('hidden');
+            document.getElementById('feedback-icon').innerText = isCorrect ? "✅" : "❌";
+            document.getElementById('feedback-title').innerText = isCorrect ? "Correct!" : "Incorrect!";
+        }
+
+        function closeFeedback() {
+            document.getElementById('feedback-overlay').classList.add('hidden');
+            currentQ++;
+            if(currentQ < questions.length) showQuestion();
+            else showLeaderboard();
+        }
+
+        function showLeaderboard() {
+            // Save score only if not admin
+            if(playerName !== "admin123") {
+                let history = JSON.parse(localStorage.getItem('simra_scores')) || [];
+                history.push({name: playerName, score: score});
+                history.sort((a,b) => b.score - a.score);
+                localStorage.setItem('simra_scores', JSON.stringify(history.slice(0, 5)));
+            }
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+
+            const history = JSON.parse(localStorage.getItem('simra_scores')) || [];
+            document.getElementById('final-leaderboard').innerHTML = history.map((e, i) => `
+                <div class="rank-item"><span><strong>#${i+1}</strong> ${e.name}</span><span>${e.score} pts</span></div>
+            `).join('') || "<p style='color:gray'>No participants yet.</p>";
+        }
+    </script>
+</body>
+</html>
