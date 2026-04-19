@@ -9,8 +9,8 @@
         :root {
             --primary: #00d2ff; --secondary: #3a7bd5; --accent: #6366f1;
             --correct: #2ecc71; --wrong: #e74c3c;
-            --glass: rgba(255, 255, 255, 0.95);
-            --dark-bg: #0f172a; --gh-dark: #161b22; --gh-border: #30363d;
+            --glass: rgba(15, 23, 42, 0.8);
+            --dark-bg: #0f172a; --gh-border: #30363d;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,129 +22,93 @@
                         radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
             background-color: var(--dark-bg);
             min-height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;
+            color: white;
         }
 
-        /* --- RESTORED ANIMATED INTRO --- */
-        #splash-screen {
-            position: fixed; inset: 0; background: var(--dark-bg);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 1000; transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.8s;
-        }
-
-        .intro-title {
-            font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 800;
-            background: linear-gradient(to right, #00d2ff, #3a7bd5, #00d2ff);
-            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite, float 4s ease-in-out infinite;
-            margin-bottom: 10px;
-        }
-
-        .tagline {
-            font-size: 1rem; color: #94a3b8; letter-spacing: 4px; text-transform: uppercase;
-            opacity: 0; animation: fadeInDelay 1.5s forwards 0.5s;
-        }
-
+        /* --- INTRO & NAV --- */
+        #splash-screen { position: fixed; inset: 0; background: var(--dark-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: 1s ease-in-out; }
+        .intro-title { font-size: 3.5rem; font-weight: 800; background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 3s linear infinite; }
         @keyframes shine { to { background-position: 200% center; } }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        @keyframes fadeInDelay { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .fade-out { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 
-        /* --- NAVBAR --- */
-        nav {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 1000px; padding: 12px 25px; border-radius: 24px;
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex; justify-content: space-between; align-items: center; z-index: 500;
-        }
+        nav { position: fixed; top: 20px; width: 90%; max-width: 1000px; padding: 15px 25px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 500; }
 
-        .nav-logo {
-            font-weight: 800; font-size: 1.3rem; text-decoration: none;
-            background: linear-gradient(to right, #00d2ff, #3a7bd5, #00d2ff);
-            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
-        }
-
-        .share-btn {
-            background: linear-gradient(135deg, var(--accent), var(--secondary));
-            color: white; padding: 10px 24px; border-radius: 14px; cursor: pointer;
-            font-weight: 600; border: none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-            transition: 0.3s ease;
-        }
-
-        /* --- GAME CONTAINER --- */
+        /* --- COOL CONTAINER --- */
         #game-container {
-            background: var(--glass); width: 95%; max-width: 550px; padding: 2.5rem;
-            border-radius: 35px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            text-align: center; backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4);
-            margin-top: 60px; position: relative;
+            background: var(--glass); width: 95%; max-width: 500px; padding: 2.5rem;
+            border-radius: 30px; box-shadow: 0 0 40px rgba(0, 210, 255, 0.2);
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); position: relative;
         }
 
-        .btn { background: linear-gradient(135deg, var(--accent), var(--secondary)); color: white; border: none; padding: 16px; border-radius: 16px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 15px; transition: 0.3s; }
-        .option-btn { background: white; border: 2px solid #f1f5f9; padding: 15px; border-radius: 18px; cursor: pointer; width: 100%; margin-top: 12px; text-align: left; transition: 0.2s; font-family: inherit; }
-        .option-btn:hover { border-color: var(--primary); transform: translateX(5px); }
+        /* --- PROGRESS BAR --- */
+        .progress-container { margin-bottom: 20px; text-align: left; }
+        .progress-text { font-size: 0.8rem; color: var(--primary); font-weight: 600; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .progress-bar-bg { background: rgba(255,255,255,0.1); height: 6px; border-radius: 10px; overflow: hidden; }
+        #progress-fill { background: linear-gradient(to right, var(--primary), var(--accent)); width: 0%; height: 100%; transition: 0.4s ease; }
 
-        #share-modal {
-            position: fixed; top: 90px; right: 5%; width: 320px; padding: 20px; border-radius: 16px;
-            background: var(--gh-dark); border: 1px solid var(--gh-border); display: none; z-index: 1000;
+        h3 { font-size: 1.4rem; margin-bottom: 25px; line-height: 1.4; }
+
+        /* --- CREATIVE BUTTONS --- */
+        .btn { background: linear-gradient(135deg, var(--accent), var(--secondary)); color: white; border: none; padding: 16px; border-radius: 16px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 15px; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .btn:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        .option-btn { 
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 18px; border-radius: 15px; cursor: pointer; width: 100%; margin-top: 12px; 
+            text-align: left; color: #cbd5e1; font-family: inherit; transition: 0.3s;
         }
+        .option-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--primary); color: white; transform: translateX(8px); }
 
-        #feedback-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 35px; }
+        #feedback-overlay { position: absolute; inset: 0; background: var(--dark-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 30px; }
         .hidden { display: none !important; }
-        .rank-item { display: flex; justify-content: space-between; padding: 14px; margin-bottom: 10px; border-radius: 14px; background: white; border-left: 5px solid var(--primary); color: #1e293b; font-weight: 600; }
-        #loading-msg { font-size: 0.8rem; color: var(--secondary); margin-top: 10px; font-weight: 700; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .rank-item { display: flex; justify-content: space-between; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
         <h1 class="intro-title">Simra's Quiz</h1>
-        <p class="tagline">Where Curiosity Meets Wisdom</p>
+        <p style="letter-spacing: 5px; color: #64748b;">ARENA 2.0</p>
     </div>
 
     <nav>
-        <a href="#" class="nav-logo" onclick="location.reload()">Simra's Quiz</a>
-        <button class="share-btn" id="shareTrigger">Share Arena</button>
+        <span style="font-weight: 800; color: var(--primary);">LIFEGUARD</span>
+        <button class="btn" style="width: auto; padding: 8px 15px; margin:0;" onclick="location.reload()">Reset</button>
     </nav>
 
-    <div id="share-modal">
-        <p style="color: #c9d1d9; font-size: 0.9rem; font-weight: 600;">Arena Link</p>
-        <div style="display: flex; background: #0d1117; border: 1px solid var(--gh-border); border-radius: 8px; padding: 10px; margin-top: 10px; align-items: center; gap: 10px;">
-            <input type="text" id="repo-link" value="https://s12238244-jpg.github.io/simra/" readonly style="background:transparent; border:none; color:#8b949e; width:100%; outline:none; font-size:0.8rem;">
-            <span style="cursor:pointer;" onclick="copyLink()">📋</span>
-        </div>
-    </div>
-
     <div id="game-container" class="hidden">
+        
         <div id="start-screen">
-            <h1 style="color: #0f172a;">LifeGuard</h1>
-            <p style="color: #64748b; margin-bottom: 25px;">The Ultimate Strategy Challenge.</p>
-            <input type="text" id="username" placeholder="Your Hero Name..." style="width: 100%; padding: 16px; border-radius: 14px; border: 2px solid #e2e8f0; margin-bottom: 15px; outline: none;">
-            <button class="btn" onclick="startGame()">ENTER ARENA</button>
+            <h1 style="margin-bottom: 10px;">Welcome, Hero</h1>
+            <p style="color: #94a3b8; margin-bottom: 30px;">Your strategy session begins now.</p>
+            <input type="text" id="username" placeholder="Enter Your Name..." style="width: 100%; padding: 16px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--gh-border); color: white; outline: none; margin-bottom: 20px;">
+            <button class="btn" onclick="startGame()">LAUNCH MISSION</button>
         </div>
 
         <div id="quiz-screen" class="hidden">
-            <h3 id="question-text" style="color: #1e293b; margin-bottom: 20px;"></h3>
+            <div class="progress-container">
+                <span class="progress-text" id="q-counter">Question 1 of 10</span>
+                <div class="progress-bar-bg"><div id="progress-fill"></div></div>
+            </div>
+            <h3 id="question-text"></h3>
             <div id="options-container"></div>
+            
             <div id="feedback-overlay" class="hidden">
-                <h1 id="feedback-icon" style="font-size: 4rem;"></h1>
-                <h2 id="feedback-title"></h2>
-                <button class="btn" style="width: auto; padding: 12px 30px;" onclick="closeFeedback()">CONTINUE</button>
+                <h1 id="feedback-icon" style="font-size: 5rem; margin-bottom: 10px;"></h1>
+                <h2 id="feedback-title" style="margin-bottom: 20px;"></h2>
+                <button class="btn" style="width: auto; padding: 12px 40px;" onclick="closeFeedback()">NEXT STEP</button>
             </div>
         </div>
 
         <div id="end-screen" class="hidden">
-            <h2 style="color: #1e293b; margin-bottom: 10px;">🏆 Arena Standings</h2>
-            <p id="loading-msg" class="hidden">Syncing live scores...</p>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Mission Complete</h2>
             <div id="final-leaderboard"></div>
-            <button class="btn" onclick="location.reload()">RE-CHALLENGE</button>
+            <button class="btn" onclick="location.reload()">RETURN TO HUB</button>
         </div>
     </div>
 
     <script>
-        // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
-        const DATABASE_URL = "https://script.google.com/macros/s/AKfycbydWxniS6CoGqvMx20oiKOMCOW5pWzVmtbWwa71zX2nvkiXbEvfq8N0Ip1A3WaTs_IG/exec";
+        const DATABASE_URL = "https://script.google.com/macros/s/AKfycbydWxniS6CoGqvMx20oiKOMCOW5pWzVmtbWwa71zX2nvkiXbEvfq8N0Ip1A3WaTs_IG/exec"; 
 
         const questions = [
             { q: "What is a 'Normal' Blood Pressure reading?", a: ["120/80 mmHg", "140/90 mmHg", "160/100 mmHg", "90/60 mmHg"], correct: 0 },
@@ -166,21 +130,9 @@
             document.getElementById('game-container').classList.remove('hidden');
         }, 3000);
 
-        // Share functionality
-        const modal = document.getElementById('share-modal');
-        const shareBtn = document.getElementById('shareTrigger');
-        shareBtn.onclick = (e) => { e.stopPropagation(); modal.style.display = modal.style.display === 'block' ? 'none' : 'block'; };
-        window.onclick = (e) => { if (modal.style.display === 'block' && !modal.contains(e.target) && e.target !== shareBtn) modal.style.display = 'none'; };
-
-        function copyLink() {
-            const link = document.getElementById('repo-link');
-            link.select(); document.execCommand('copy');
-            alert('Arena link copied!'); modal.style.display = 'none';
-        }
-
         function startGame() {
             playerName = document.getElementById('username').value.trim();
-            if(!playerName) return alert("Enter your name!");
+            if(!playerName) return alert("Identify yourself, Hero!");
             if(playerName.toLowerCase() === "admin123") { showLeaderboard(); return; }
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.remove('hidden');
@@ -189,6 +141,10 @@
 
         function showQuestion() {
             const q = questions[currentQ];
+            // Update Progress
+            document.getElementById('q-counter').innerText = `Question ${currentQ + 1} of ${questions.length}`;
+            document.getElementById('progress-fill').style.width = `${((currentQ + 1) / questions.length) * 100}%`;
+            
             document.getElementById('question-text').innerText = q.q;
             const container = document.getElementById('options-container');
             container.innerHTML = '';
@@ -206,8 +162,9 @@
             if (isCorrect) score += 10;
             const overlay = document.getElementById('feedback-overlay');
             overlay.classList.remove('hidden');
-            document.getElementById('feedback-icon').innerText = isCorrect ? "✅" : "❌";
-            document.getElementById('feedback-title').innerText = isCorrect ? "Correct!" : "Incorrect!";
+            document.getElementById('feedback-icon').innerText = isCorrect ? "✨" : "⚠️";
+            document.getElementById('feedback-title').innerText = isCorrect ? "Excellent!" : "Not quite...";
+            document.getElementById('feedback-title').style.color = isCorrect ? "var(--correct)" : "var(--wrong)";
         }
 
         async function closeFeedback() {
@@ -224,31 +181,24 @@
         async function saveScore() {
             if (playerName.toLowerCase() === "admin123") return;
             try {
-                await fetch(DATABASE_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify({ name: playerName, score: score })
-                });
-            } catch (e) { console.error("Cloud save failed", e); }
+                await fetch(DATABASE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ name: playerName, score: score }) });
+            } catch (e) { console.error("Sync Error", e); }
         }
 
         async function showLeaderboard() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-screen').classList.add('hidden');
             document.getElementById('end-screen').classList.remove('hidden');
-            document.getElementById('loading-msg').classList.remove('hidden');
-
             try {
-                const response = await fetch(DATABASE_URL);
+                const response = await fetch(DATABASE_URL + "?t=" + new Date().getTime());
                 const data = await response.json();
                 data.sort((a, b) => b.score - a.score);
-                document.getElementById('final-leaderboard').innerHTML = data.slice(0, 10).map((e, i) => `
+                document.getElementById('final-leaderboard').innerHTML = data.slice(0, 5).map((e, i) => `
                     <div class="rank-item"><span>#${i+1} ${e.name}</span><span>${e.score} pts</span></div>
                 `).join('');
             } catch (e) {
-                document.getElementById('final-leaderboard').innerHTML = "Check your DATABASE_URL in the code.";
+                document.getElementById('final-leaderboard').innerHTML = "<p style='color:#64748b'>Establishing connection...</p>";
             }
-            document.getElementById('loading-msg').classList.add('hidden');
         }
     </script>
 </body>
