@@ -151,12 +151,12 @@
         </div>
 
         <div id="end-screen" class="hidden">
-            <h2 style="color: var(--primary); margin-bottom: 20px;">Mission Complete</h2>
-            <p id="loading-msg" class="hidden">Syncing cloud scores...</p>
-            <div id="final-leaderboard" style="text-align: left;"></div>
-            <button class="btn" onclick="location.reload()">RE-CHALLENGE</button>
-        </div>
-    </div>
+    <h2 style="color: var(--primary); margin-bottom: 20px;">Mission Complete</h2>
+    <p id="loading-msg" class="hidden">Syncing live scores...</p>
+    <div id="final-leaderboard" style="text-align: left; margin-bottom: 20px;"></div>
+    
+    <button class="btn" id="refresh-btn" onclick="showLeaderboard()">REFRESH LEADERBOARD</button>
+</div>
 
     <script>
         // PASTE YOUR GOOGLE APPS SCRIPT URL HERE
@@ -251,24 +251,37 @@
         }
 
         async function showLeaderboard() {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('end-screen').classList.remove('hidden');
-            document.getElementById('loading-msg').classList.remove('hidden');
-
-            try {
-                // Fetch live from GS with cache-busting
-                const response = await fetch(DATABASE_URL + "?t=" + new Date().getTime());
-                const data = await response.json();
-                data.sort((a, b) => b.score - a.score);
-                document.getElementById('final-leaderboard').innerHTML = data.slice(0, 5).map((e, i) => `
-                    <div class="rank-item"><span>#${i+1} ${e.name}</span><span>${e.score} pts</span></div>
-                `).join('');
-            } catch (e) {
-                document.getElementById('final-leaderboard').innerHTML = "Database is connecting...";
-            }
-            document.getElementById('loading-msg').classList.add('hidden');
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        
+        const loadingMsg = document.getElementById('loading-msg');
+        const leaderboardDiv = document.getElementById('final-leaderboard');
+        
+        loadingMsg.classList.remove('hidden');
+        
+        try {
+            // Fetch live data with cache-busting timestamp
+            const response = await fetch(DATABASE_URL + "?t=" + new Date().getTime());
+            const data = await response.json();
+            
+            // Sort by highest score
+            data.sort((a, b) => b.score - a.score);
+            
+            leaderboardDiv.innerHTML = data.slice(0, 10).map((e, i) => `
+                <div class="rank-item" style="display: flex; justify-content: space-between; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); font-weight: 600;">
+                    <span>#${i+1} ${e.name}</span>
+                    <span style="color: var(--primary)">${e.score} pts</span>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            leaderboardDiv.innerHTML = "<p style='color:#64748b; text-align:center;'>Waiting for incoming data...</p>";
+            console.error("Fetch error:", e);
+        } finally {
+            loadingMsg.classList.add('hidden');
         }
-    </script>
-</body>
-</html>
+    }
+    
+    // ... (Rest of your existing functions)
+</script>
